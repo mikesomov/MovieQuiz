@@ -58,7 +58,6 @@ final class MovieQuizViewController: UIViewController {
         imageView.layer.cornerRadius = 20
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 0
-        
         let firstQuestion = questions[currentQuestionIndex]
         let viewModel = convert(model: firstQuestion)
         show(quiz: viewModel)
@@ -105,7 +104,6 @@ final class MovieQuizViewController: UIViewController {
     private func showAnswerResult(isCorrect: Bool) {
         imageView.layer.borderWidth = 8
         imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
-        
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             self.imageView.layer.borderWidth = 0
             self.showNextQuestionOrResult()
@@ -120,25 +118,21 @@ final class MovieQuizViewController: UIViewController {
                 message: "Ваш результат \(correctAnswers) из \(questions.count)",
                 preferredStyle: .alert
             )
-            
             let action = UIAlertAction(title: "Начать заново", style: .default) { _ in
                 self.currentQuestionIndex = 0
                 self.correctAnswers = 0
-                
                 let firstQuestion = self.questions[self.currentQuestionIndex]
                 let viewModel = self.convert(model: firstQuestion)
                 self.show(quiz: viewModel)
+                self.enableButtons()
             }
-            
             alert.addAction(action)
             present(alert, animated: true, completion: nil)
-            
         } else {
             currentQuestionIndex += 1
-            
             let nextQuestion = questions[currentQuestionIndex]
             let viewModel = convert(model: nextQuestion)
-            
+            enableButtons()
             show(quiz: viewModel)
         }
     }
@@ -146,11 +140,11 @@ final class MovieQuizViewController: UIViewController {
     private func disableButtons() {
         yesButton.isUserInteractionEnabled = false
         noButton.isUserInteractionEnabled = false
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            self.yesButton.isUserInteractionEnabled = true
-            self.noButton.isUserInteractionEnabled = true
-        }
+    }
+    
+    private func enableButtons() {
+        self.yesButton.isUserInteractionEnabled = true
+        self.noButton.isUserInteractionEnabled = true
     }
     
     private func showFireworksAnimation() {
