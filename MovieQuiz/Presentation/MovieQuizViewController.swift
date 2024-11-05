@@ -8,33 +8,6 @@ final class MovieQuizViewController: UIViewController {
     @IBOutlet weak private var yesButton: UIButton!
     @IBOutlet weak private var noButton: UIButton!
     
-    @IBAction private func yesButtonClicked(_ sender: UIButton) {
-        disableButtons()
-        animateButtonPress(sender)
-        let currentQuestion = questions[currentQuestionIndex]
-        let givenAnswer = true
-        
-        if givenAnswer == currentQuestion.correctAnswer {
-            correctAnswers += 1
-        }
-        
-        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
-    }
-    
-    @IBAction private func noButtonClicked(_ sender: UIButton) {
-        disableButtons()
-        animateButtonPress(sender)
-        let currentQuestion = questions[currentQuestionIndex]
-        let givenAnswer = false
-        
-        if givenAnswer == currentQuestion.correctAnswer {
-            correctAnswers += 1
-        }
-        
-        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
-        
-    }
-    
     private var currentQuestionIndex = 0
     private var correctAnswers = 0
     private let questions: [QuizQuestion] = [
@@ -79,6 +52,41 @@ final class MovieQuizViewController: UIViewController {
             text: "Рейтинг этого фильма больше чем 6?",
             correctAnswer: false)
     ]
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        imageView.layer.cornerRadius = 20
+        imageView.layer.masksToBounds = true
+        imageView.layer.borderWidth = 0
+        
+        let firstQuestion = questions[currentQuestionIndex]
+        let viewModel = convert(model: firstQuestion)
+        show(quiz: viewModel)
+    }
+    
+    @IBAction private func yesButtonClicked(_ sender: UIButton) {
+        disableButtons()
+        animateButtonPress(sender)
+        let currentQuestion = questions[currentQuestionIndex]
+        let givenAnswer = true
+        
+        if givenAnswer == currentQuestion.correctAnswer {
+            correctAnswers += 1
+        }
+        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+    }
+    
+    @IBAction private func noButtonClicked(_ sender: UIButton) {
+        disableButtons()
+        animateButtonPress(sender)
+        let currentQuestion = questions[currentQuestionIndex]
+        let givenAnswer = false
+        
+        if givenAnswer == currentQuestion.correctAnswer {
+            correctAnswers += 1
+        }
+        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+    }
     
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
         let questionStep = QuizStepViewModel(
@@ -150,7 +158,7 @@ final class MovieQuizViewController: UIViewController {
         fireworksEmitter.emitterPosition = CGPoint(x: view.bounds.width / 2, y: -50)
         fireworksEmitter.emitterSize = CGSize(width: view.bounds.width, height: 0)
         fireworksEmitter.emitterShape = .line
-
+        
         let cell = CAEmitterCell()
         
         cell.contents = UIImage(systemName: "circle.fill")?.cgImage
@@ -167,28 +175,14 @@ final class MovieQuizViewController: UIViewController {
         cell.yAcceleration = 150
         cell.spin = 2
         cell.spinRange = 3
-
+        
         fireworksEmitter.emitterCells = [cell]
         view.layer.addSublayer(fireworksEmitter)
-
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
             fireworksEmitter.removeFromSuperlayer()
         }
     }
-    
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        imageView.layer.cornerRadius = 20
-        imageView.layer.masksToBounds = true
-        imageView.layer.borderWidth = 0
-        
-        let firstQuestion = questions[currentQuestionIndex]
-        let viewModel = convert(model: firstQuestion)
-        show(quiz: viewModel)
-        
-    }
-    
 }
 
 private func animateButtonPress(_ button: UIButton) {
