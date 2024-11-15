@@ -6,10 +6,11 @@
 //
 
 import Foundation
+import UIKit
 
 final class QuestionFactory: QuestionFactoryProtocol {
     
-    weak var delegate: QuestionFactoryDelegate?
+    private weak var delegate: QuestionFactoryDelegate?
     
     func setup(delegate: QuestionFactoryDelegate) {
         self.delegate = delegate
@@ -17,43 +18,43 @@ final class QuestionFactory: QuestionFactoryProtocol {
     
     private let questions: [QuizQuestion] = [
         QuizQuestion(
-            image: "The Godfather",
+            image: UIImage(named: "The Godfather") ?? UIImage(),
             text: "Рейтинг этого фильма больше чем 6?",
             correctAnswer: true),
         QuizQuestion(
-            image: "The Dark Knight",
+            image: UIImage(named: "The Dark Knight") ?? UIImage(),
             text: "Рейтинг этого фильма больше чем 6?",
             correctAnswer: true),
         QuizQuestion(
-            image: "Kill Bill",
+            image: UIImage(named: "Kill Bill") ?? UIImage(),
             text: "Рейтинг этого фильма больше чем 6?",
             correctAnswer: true),
         QuizQuestion(
-            image: "The Avengers",
+            image: UIImage(named: "The Avengers") ?? UIImage(),
             text: "Рейтинг этого фильма больше чем 6?",
             correctAnswer: true),
         QuizQuestion(
-            image: "Deadpool",
+            image: UIImage(named: "Deadpool") ?? UIImage(),
             text: "Рейтинг этого фильма больше чем 6?",
             correctAnswer: true),
         QuizQuestion(
-            image: "The Green Knight",
+            image: UIImage(named: "The Green Knight") ?? UIImage(),
             text: "Рейтинг этого фильма больше чем 6?",
             correctAnswer: true),
         QuizQuestion(
-            image: "Old",
+            image: UIImage(named: "Old") ?? UIImage(),
             text: "Рейтинг этого фильма больше чем 6?",
             correctAnswer: false),
         QuizQuestion(
-            image: "The Ice Age Adventures of Buck Wild",
+            image: UIImage(named: "The Ice Age Adventures of Buck Wild") ?? UIImage(),
             text: "Рейтинг этого фильма больше чем 6?",
             correctAnswer: false),
         QuizQuestion(
-            image: "Tesla",
+            image: UIImage(named: "Tesla") ?? UIImage(),
             text: "Рейтинг этого фильма больше чем 6?",
             correctAnswer: false),
         QuizQuestion(
-            image: "Vivarium",
+            image: UIImage(named: "Vivarium") ?? UIImage(),
             text: "Рейтинг этого фильма больше чем 6?",
             correctAnswer: false)
     ]
@@ -63,7 +64,7 @@ final class QuestionFactory: QuestionFactoryProtocol {
             delegate?.didReceiveNextQuestion(question: nil)
             return
         }
-        let question = questions[safe: index]
+        let question = questions[index]
         delegate?.didReceiveNextQuestion(question: question)
     }
 }

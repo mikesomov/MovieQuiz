@@ -10,8 +10,7 @@ import UIKit
 
 final class AlertPresenter {
     
-    weak var delegate: AlertPresenterDelegate?
-    private let statisticService = StatisticService()
+    private weak var delegate: AlertPresenterDelegate?
     
     init(delegate: AlertPresenterDelegate) {
         self.delegate = delegate
@@ -34,20 +33,13 @@ final class AlertPresenter {
         delegate?.presentAlert(alert: alert)
     }
     
-    func showFinalResultsAlert(correctAnswers: Int, totalQuestions: Int) {
-        let gamesCount = statisticService.gamesCount
-        let bestGame = statisticService.bestGame
-        let accuracy = statisticService.totalAccuracy
-        let alertMessage = """
-             Ваш результат: \(correctAnswers)/\(totalQuestions)
-             Количество сыгранных квизов: \(gamesCount)
-             Рекорд: \(bestGame.correct)/\(bestGame.total) (\(bestGame.date.dateTimeString))
-             Средняя точность: \(String(format: "%.2f", accuracy))%
-             """
-        let alertModel = AlertModel (
-            title: "Этот раунд окончен!",
-            message: alertMessage,
-            buttonText: "Сыграть еще раз",
+    func showFinalResultsAlert(correctAnswers: Int, totalQuestions: Int, gamesCount: Int, bestGame: GameResult, accuracy: Double) {
+        let alertModel = AlertModelBuilder.buildFinalResultsAlert(
+            correctAnswers: correctAnswers,
+            totalQuestions: totalQuestions,
+            gamesCount: gamesCount,
+            bestGame: bestGame,
+            accuracy: accuracy,
             completion: { [weak self] in
                 self?.delegate?.alertActionCompleted()
             }

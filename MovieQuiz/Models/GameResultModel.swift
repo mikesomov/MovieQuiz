@@ -15,8 +15,10 @@ struct GameResult {
     func isBetterThan(_ another: GameResult) -> Bool {
         correct > another.correct
     }
-    
+}
+
+extension GameResult {
     var formattedDate: String {
-        date.dateTimeString
+        return date.dateTimeString
     }
 }

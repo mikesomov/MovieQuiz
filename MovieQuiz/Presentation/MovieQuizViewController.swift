@@ -36,7 +36,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     
     // MARK: - QuestionFactoryDelegate
     
-    internal func didReceiveNextQuestion(question: QuizQuestion?) {
+    func didReceiveNextQuestion(question: QuizQuestion?) {
         guard let question = question else {
             return
         }
@@ -49,11 +49,11 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     
     // MARK: - AlertPresenterDelegate
     
-    internal func presentAlert(alert: UIAlertController) {
+    func presentAlert(alert: UIAlertController) {
         present(alert, animated: true, completion: nil)
     }
     
-    internal func alertActionCompleted() {
+    func alertActionCompleted() {
         currentQuestionIndex = 0
         correctAnswers = 0
         questionFactory?.requestNextQuestion()
@@ -78,9 +78,10 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
         let questionStep = QuizStepViewModel(
-            image: UIImage(named: model.image) ?? UIImage(),
+            image: model.image,
             question: model.text,
-            questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
+            questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)"
+        )
         return questionStep
     }
     
@@ -113,14 +114,26 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     private func showNextQuestionOrResult() {
         if currentQuestionIndex == questionsAmount - 1 {
             showFireworksAnimation()
-            statisticService.store(correct: correctAnswers, total: questionsAmount)
-            alertPresenter?.showFinalResultsAlert(correctAnswers: correctAnswers, totalQuestions: questionsAmount)
+            statisticService.store(correct: correctAnswers, total: questionsAmount) // Store statistics
+            
+            let gamesCount = statisticService.gamesCount
+            let bestGame = statisticService.bestGame
+            let accuracy = statisticService.totalAccuracy
+            
+            alertPresenter?.showFinalResultsAlert(
+                correctAnswers: correctAnswers,
+                totalQuestions: questionsAmount,
+                gamesCount: gamesCount,
+                bestGame: bestGame,
+                accuracy: accuracy
+            )
         } else {
             currentQuestionIndex += 1
-            self.questionFactory?.requestNextQuestion()
+            questionFactory?.requestNextQuestion()
             enableButtons()
         }
     }
+    
     
     private func disableButtons() {
         yesButton.isUserInteractionEnabled = false
