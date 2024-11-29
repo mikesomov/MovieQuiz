@@ -6,6 +6,7 @@
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
         <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -97,17 +98,24 @@
                                     </stackView>
                                 </subviews>
                             </stackView>
+                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" animating="YES" style="large" translatesAutoresizingMaskIntoConstraints="NO" id="pti-Cy-hhZ">
+                                <rect key="frame" x="188.5" y="429.5" width="37" height="37"/>
+                                <color key="color" systemColor="systemIndigoColor"/>
+                            </activityIndicatorView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" name="YP Black"/>
                         <constraints>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="L4V-Ug-dmg" secondAttribute="bottom" id="Dw2-TY-XGA"/>
+                            <constraint firstItem="pti-Cy-hhZ" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="FgN-KC-JDY"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="L4V-Ug-dmg" secondAttribute="trailing" constant="20" id="KL7-4Z-auN"/>
                             <constraint firstItem="L4V-Ug-dmg" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="Pa3-DX-9gX"/>
                             <constraint firstItem="L4V-Ug-dmg" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="10" id="bAE-2l-jtt"/>
+                            <constraint firstItem="pti-Cy-hhZ" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="d9I-aO-HB5"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="activityIndicator" destination="pti-Cy-hhZ" id="WbR-iQ-FJJ"/>
                         <outlet property="counterLabel" destination="3kD-UJ-eW2" id="rcJ-ta-FcP"/>
                         <outlet property="imageView" destination="2Bm-C1-lef" id="CeY-TP-SmM"/>
                         <outlet property="noButton" destination="akM-ER-ZtU" id="RoR-2I-Bpl"/>
@@ -130,5 +138,8 @@
         <namedColor name="YP White">
             <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
+        <systemColor name="systemIndigoColor">
+            <color red="0.34509803919999998" green="0.33725490200000002" blue="0.83921568629999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
     </resources>
 </document>

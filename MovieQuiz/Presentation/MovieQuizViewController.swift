@@ -9,6 +9,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     @IBOutlet weak private var counterLabel: UILabel!
     @IBOutlet weak private var yesButton: UIButton!
     @IBOutlet weak private var noButton: UIButton!
+    @IBOutlet weak private var activityIndicator: UIActivityIndicatorView!
     
     private let questionsAmount: Int = 10
     private var questionFactory: QuestionFactoryProtocol?
@@ -24,13 +25,10 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 0
         
-        let questionFactory = QuestionFactory()
-        questionFactory.setup(delegate: self)
-        self.questionFactory = questionFactory
-        questionFactory.requestNextQuestion()
-        
+        showLoadingIndicator()
+        questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+        questionFactory?.loadData()
         statisticService = StatisticService()
-        
         alertPresenter = AlertPresenter(delegate: self)
     }
     
@@ -45,6 +43,16 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         DispatchQueue.main.async { [weak self] in
             self?.show(quiz: viewModel)
         }
+    }
+    
+    func didLoadDataFromServer() {
+        activityIndicator.isHidden = true
+        questionFactory?.requestNextQuestion()
+        
+    }
+    
+    func didFailToLoadData(with error: Error) {
+        showNetworkError(message: error.localizedDescription)
     }
     
     // MARK: - AlertPresenterDelegate
@@ -77,16 +85,15 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     // MARK: - Private functions
     
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
-        let questionStep = QuizStepViewModel(
+        return QuizStepViewModel(
             image: model.image,
             question: model.text,
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)"
         )
-        return questionStep
     }
     
     private func show(quiz step: QuizStepViewModel) {
-        self.imageView.image = step.image
+        self.imageView.image = UIImage(data: step.image) ?? UIImage(named: "placeholder")
         textLabel.text = step.question
         counterLabel.text = step.questionNumber
     }
@@ -114,7 +121,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     private func showNextQuestionOrResult() {
         if currentQuestionIndex == questionsAmount - 1 {
             showFireworksAnimation()
-            statisticService.store(correct: correctAnswers, total: questionsAmount) // Store statistics
+            statisticService.store(correct: correctAnswers, total: questionsAmount)
             
             let gamesCount = statisticService.gamesCount
             let bestGame = statisticService.bestGame
@@ -134,7 +141,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         }
     }
     
-    
     private func disableButtons() {
         yesButton.isUserInteractionEnabled = false
         noButton.isUserInteractionEnabled = false
@@ -145,21 +151,52 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         self.noButton.isUserInteractionEnabled = true
     }
     
+    private func showLoadingIndicator() {
+        DispatchQueue.main.async { [weak self] in
+            self?.activityIndicator.isHidden = false
+            self?.activityIndicator.startAnimating()
+        }
+    }
+    
+    private func hideLoadingIndicator() {
+        activityIndicator.isHidden = true
+        activityIndicator.stopAnimating()
+    }
+    
+    private func showNetworkError(message: String) {
+        hideLoadingIndicator()
+        let alertModel = AlertModel(
+            title: "Ошибка",
+            message: message,
+            buttonText: "Попробовать еще раз") {
+                [weak self] in
+                guard let self = self else { return }
+                self.currentQuestionIndex = 0
+                self.correctAnswers = 0
+                self.questionFactory?.requestNextQuestion()
+                self.enableButtons()
+            }
+        alertPresenter?.showAlert(with: alertModel)
+    }
+    
     private func showFireworksAnimation() {
         let fireworksEmitter = CAEmitterLayer()
         fireworksEmitter.emitterPosition = CGPoint(x: view.bounds.width / 2, y: -50)
         fireworksEmitter.emitterSize = CGSize(width: view.bounds.width, height: 0)
         fireworksEmitter.emitterShape = .line
+        
         let cell = CAEmitterCell()
-        cell.contents = UIImage(systemName: "circle.fill")?.cgImage
-        cell.color = UIColor.systemPink.cgColor
+        
+        let customImage = UIImage(named: "peka")
+        cell.contents = customImage?.cgImage
+        
         cell.birthRate = 300
         cell.lifetime = 4.0
         cell.velocity = 300
         cell.velocityRange = 100
         cell.emissionLongitude = .pi
         cell.emissionRange = .pi / 4
-        cell.scale = 0.1
+        cell.scale = 0.02
         cell.scaleRange = 0.05
         cell.alphaSpeed = -0.1
         cell.yAcceleration = 150
