@@ -15,7 +15,6 @@ struct AlertModelBuilder {
             Рекорд: \(bestGame.correct)/\(bestGame.total) (\(bestGame.date.dateTimeString))
             Средняя точность: \(String(format: "%.2f", accuracy))%
             """
-        
         return AlertModel(
             title: "Этот раунд окончен!",
             message: alertMessage,
