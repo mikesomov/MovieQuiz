@@ -8,16 +8,57 @@
 import Foundation
 import UIKit
 
-final class MovieQuizPresenter {
+final class MovieQuizPresenter: QuestionFactoryDelegate {
     
+    // MARK: - Lifecycle
+
     private weak var viewController: MovieQuizViewController?
     var currentQuestion: QuizQuestion?
     var correctAnswers = 0
     let questionsAmount: Int = 10
     private var currentQuestionIndex: Int = 0
+    var questionFactory: QuestionFactoryProtocol?
     
-    init(viewController: MovieQuizViewController) {
+    init(viewController: MovieQuizViewController, questionFactory: QuestionFactoryProtocol) {
         self.viewController = viewController
+        self.questionFactory = questionFactory
+        self.questionFactory?.loadData()
+    }
+    
+    // MARK: - Internal Functions
+
+    func requestNextQuestion() {
+        questionFactory?.requestNextQuestion()
+    }
+    
+    func didReceiveNextQuestion(question: QuizQuestion?) {
+        guard let question = question else {
+            print("Received nil question.")
+            return
+        }
+        currentQuestion = question
+        let viewModel = convert(model: question)
+        print("Converted question to view model.")
+
+        DispatchQueue.main.async { [weak self] in
+            print("Calling viewController to show quiz.")
+            self?.viewController?.show(quiz: viewModel)
+        }
+    }
+    
+    func didLoadDataFromServer() {
+        DispatchQueue.main.async { [weak self] in
+            print("Data loaded from server.")
+            self?.viewController?.hideLoadingIndicator()
+            self?.requestNextQuestion()
+        }
+    }
+    
+    func didFailToLoadData(with error: Error) {
+        DispatchQueue.main.async { [weak self] in
+            self?.viewController?.hideLoadingIndicator()
+            self?.viewController?.showNetworkError(message: error.localizedDescription)
+        }
     }
     
     func yesButtonClicked() {
@@ -53,17 +94,6 @@ final class MovieQuizPresenter {
         )
     }
     
-    func didReceiveNextQuestion(question: QuizQuestion?) {
-        guard let question = question else {
-            return
-        }
-        currentQuestion = question
-        let viewModel = convert(model: question)
-        DispatchQueue.main.async { [weak self] in
-            self?.viewController?.show(quiz: viewModel)
-        }
-    }
-    
     func handleAnswer(givenAnswer: Bool) {
         guard let currentQuestion = currentQuestion else { return }
         let isCorrect = givenAnswer == currentQuestion.correctAnswer
@@ -91,7 +121,7 @@ final class MovieQuizPresenter {
             )
         } else {
             switchToNextQuestion()
-            viewController?.requestNextQuestion()
+            requestNextQuestion()
             viewController?.enableButtons()
         }
     }
