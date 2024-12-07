@@ -7,8 +7,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     @IBOutlet weak private var imageView: UIImageView!
     @IBOutlet weak private var textLabel: UILabel!
     @IBOutlet weak private var counterLabel: UILabel!
-    @IBOutlet weak private var yesButton: UIButton!
-    @IBOutlet weak private var noButton: UIButton!
+    @IBOutlet weak var yesButton: UIButton!
+    @IBOutlet weak var noButton: UIButton!
     @IBOutlet weak private var activityIndicator: UIActivityIndicatorView!
     
     private var questionFactory: QuestionFactoryProtocol?
@@ -16,7 +16,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     private var correctAnswers = 0
     private var alertPresenter: AlertPresenter?
     private var statisticService = StatisticService()
-    private let presenter = MovieQuizPresenter()
+    private lazy var presenter: MovieQuizPresenter = {
+        return MovieQuizPresenter(viewController: self)
+    }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -72,15 +74,11 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     // MARK: - Actions
     
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
-        disableButtons()
-        animateButtonPress(sender)
-        handleAnswer(givenAnswer: true)
+        presenter.yesButtonClicked()
     }
     
     @IBAction private func noButtonClicked(_ sender: UIButton) {
-        disableButtons()
-        animateButtonPress(sender)
-        handleAnswer(givenAnswer: false)
+        presenter.noButtonClicked()
     }
     
     // MARK: - Private functions
@@ -91,7 +89,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         counterLabel.text = step.questionNumber
     }
     
-    private func handleAnswer(givenAnswer: Bool) {
+    func handleAnswer(givenAnswer: Bool) {
         guard let currentQuestion = currentQuestion else {
             return
         }
@@ -134,14 +132,26 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         }
     }
     
-    private func disableButtons() {
+    func disableButtons() {
         yesButton.isUserInteractionEnabled = false
         noButton.isUserInteractionEnabled = false
     }
     
-    private func enableButtons() {
+    func enableButtons() {
         self.yesButton.isUserInteractionEnabled = true
         self.noButton.isUserInteractionEnabled = true
+    }
+    
+    func animateButtonPress(_ button: UIButton) {
+        UIView.animate(withDuration: 0.1,
+                       animations: {
+            button.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+        },
+                       completion: { _ in
+            UIView.animate(withDuration: 0.1) {
+                button.transform = CGAffineTransform.identity
+            }
+        })
     }
     
     private func showLoadingIndicator() {
@@ -204,17 +214,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
             fireworksEmitter.removeFromSuperlayer()
         }
     }
-    
-    private func animateButtonPress(_ button: UIButton) {
-        UIView.animate(withDuration: 0.1,
-                       animations: {
-            button.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
-        },
-                       completion: { _ in
-            UIView.animate(withDuration: 0.1) {
-                button.transform = CGAffineTransform.identity
-            }
-        })
-    }
 }
+
 
