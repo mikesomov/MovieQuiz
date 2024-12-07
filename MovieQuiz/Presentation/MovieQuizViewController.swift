@@ -12,7 +12,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     @IBOutlet weak private var activityIndicator: UIActivityIndicatorView!
     
     private var questionFactory: QuestionFactoryProtocol?
-    private var currentQuestion: QuizQuestion?
     private var correctAnswers = 0
     private var alertPresenter: AlertPresenter?
     private var statisticService = StatisticService()
@@ -36,15 +35,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     // MARK: - QuestionFactoryDelegate
     
     func didReceiveNextQuestion(question: QuizQuestion?) {
-        guard let question = question else {
-            return
+            presenter.didReceiveNextQuestion(question: question)
         }
-        currentQuestion = question
-        let viewModel = presenter.convert(model: question)
-        DispatchQueue.main.async { [weak self] in
-            self?.show(quiz: viewModel)
-        }
-    }
     
     func didLoadDataFromServer() {
         activityIndicator.isHidden = true
@@ -83,14 +75,14 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     
     // MARK: - Private functions
     
-    private func show(quiz step: QuizStepViewModel) {
+    func show(quiz step: QuizStepViewModel) {
         self.imageView.image = UIImage(data: step.image) ?? UIImage(named: "placeholder")
         textLabel.text = step.question
         counterLabel.text = step.questionNumber
     }
     
     func handleAnswer(givenAnswer: Bool) {
-        guard let currentQuestion = currentQuestion else {
+        guard let currentQuestion = presenter.currentQuestion else {
             return
         }
         if givenAnswer == currentQuestion.correctAnswer {
@@ -105,31 +97,16 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             guard let self = self else { return }
             self.imageView.layer.borderWidth = 0
-            self.showNextQuestionOrResult()
+            self.presenter.showNextQuestionOrResult(
+                correctAnswers: self.correctAnswers,
+                statisticService: self.statisticService,
+                alertPresenter: self.alertPresenter
+            )
         }
     }
     
-    private func showNextQuestionOrResult() {
-        if presenter.isLastQuestion() {
-            showFireworksAnimation()
-            statisticService.store(correct: correctAnswers, total: presenter.questionsAmount)
-            
-            let gamesCount = statisticService.gamesCount
-            let bestGame = statisticService.bestGame
-            let accuracy = statisticService.totalAccuracy
-            
-            alertPresenter?.showFinalResultsAlert(
-                correctAnswers: correctAnswers,
-                totalQuestions: presenter.questionsAmount,
-                gamesCount: gamesCount,
-                bestGame: bestGame,
-                accuracy: accuracy
-            )
-        } else {
-            presenter.switchToNextQuestion()
-            questionFactory?.requestNextQuestion()
-            enableButtons()
-        }
+    func requestNextQuestion() {
+        questionFactory?.requestNextQuestion()
     }
     
     func disableButtons() {
@@ -183,7 +160,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         alertPresenter?.showAlert(with: alertModel)
     }
     
-    private func showFireworksAnimation() {
+    func showFireworksAnimation() {
         let fireworksEmitter = CAEmitterLayer()
         fireworksEmitter.emitterPosition = CGPoint(x: view.bounds.width / 2, y: -50)
         fireworksEmitter.emitterSize = CGSize(width: view.bounds.width, height: 0)
