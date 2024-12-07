@@ -11,13 +11,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     @IBOutlet weak private var noButton: UIButton!
     @IBOutlet weak private var activityIndicator: UIActivityIndicatorView!
     
-    private let questionsAmount: Int = 10
     private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
-    private var currentQuestionIndex = 0
     private var correctAnswers = 0
     private var alertPresenter: AlertPresenter?
     private var statisticService = StatisticService()
+    private let presenter = MovieQuizPresenter()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -39,7 +38,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
             return
         }
         currentQuestion = question
-        let viewModel = convert(model: question)
+        let viewModel = presenter.convert(model: question)
         DispatchQueue.main.async { [weak self] in
             self?.show(quiz: viewModel)
         }
@@ -62,10 +61,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     }
     
     func alertActionCompleted() {
-        currentQuestionIndex = 0
-        correctAnswers = 0
-        questionFactory?.requestNextQuestion()
-        enableButtons()
+        if presenter.isLastQuestion() {
+            presenter.resetQuestionIndex()
+            correctAnswers = 0
+            questionFactory?.requestNextQuestion()
+            enableButtons()
+        }
     }
     
     // MARK: - Actions
@@ -83,14 +84,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     }
     
     // MARK: - Private functions
-    
-    private func convert(model: QuizQuestion) -> QuizStepViewModel {
-        return QuizStepViewModel(
-            image: model.image,
-            question: model.text,
-            questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)"
-        )
-    }
     
     private func show(quiz step: QuizStepViewModel) {
         self.imageView.image = UIImage(data: step.image) ?? UIImage(named: "placeholder")
@@ -119,9 +112,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     }
     
     private func showNextQuestionOrResult() {
-        if currentQuestionIndex == questionsAmount - 1 {
+        if presenter.isLastQuestion() {
             showFireworksAnimation()
-            statisticService.store(correct: correctAnswers, total: questionsAmount)
+            statisticService.store(correct: correctAnswers, total: presenter.questionsAmount)
             
             let gamesCount = statisticService.gamesCount
             let bestGame = statisticService.bestGame
@@ -129,13 +122,13 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
             
             alertPresenter?.showFinalResultsAlert(
                 correctAnswers: correctAnswers,
-                totalQuestions: questionsAmount,
+                totalQuestions: presenter.questionsAmount,
                 gamesCount: gamesCount,
                 bestGame: bestGame,
                 accuracy: accuracy
             )
         } else {
-            currentQuestionIndex += 1
+            presenter.switchToNextQuestion()
             questionFactory?.requestNextQuestion()
             enableButtons()
         }
@@ -171,10 +164,11 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
             buttonText: "Попробовать еще раз") {
                 [weak self] in
                 guard let self = self else { return }
-                self.currentQuestionIndex = 0
-                self.correctAnswers = 0
-                self.questionFactory?.requestNextQuestion()
-                self.enableButtons()
+                if presenter.isLastQuestion() {
+                    self.correctAnswers = 0
+                    self.questionFactory?.requestNextQuestion()
+                    self.enableButtons()
+                }
             }
         alertPresenter?.showAlert(with: alertModel)
     }
@@ -210,16 +204,17 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
             fireworksEmitter.removeFromSuperlayer()
         }
     }
+    
+    private func animateButtonPress(_ button: UIButton) {
+        UIView.animate(withDuration: 0.1,
+                       animations: {
+            button.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+        },
+                       completion: { _ in
+            UIView.animate(withDuration: 0.1) {
+                button.transform = CGAffineTransform.identity
+            }
+        })
+    }
 }
 
-private func animateButtonPress(_ button: UIButton) {
-    UIView.animate(withDuration: 0.1,
-                   animations: {
-        button.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
-    },
-                   completion: { _ in
-        UIView.animate(withDuration: 0.1) {
-            button.transform = CGAffineTransform.identity
-        }
-    })
-}

@@ -1,13 +1,18 @@
 //
-//  NetworkClient.swift
+//  NetworkRoutingProtocol.swift
 //  MovieQuiz
 //
-//  Created by Mike Somov on 27.11.2024.
+//  Created by Mike Somov on 04.12.2024.
 //
 
 import Foundation
 
-struct NetworkClient {
+
+protocol NetworkRouting {
+    func fetch(url: URL, handler: @escaping (Result<Data, Error>) -> Void)
+}
+
+struct NetworkClient:NetworkRouting {
     
     private enum NetworkError: Error {
         case codeError
