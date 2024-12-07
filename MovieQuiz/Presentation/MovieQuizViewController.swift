@@ -12,7 +12,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     @IBOutlet weak private var activityIndicator: UIActivityIndicatorView!
     
     private var questionFactory: QuestionFactoryProtocol?
-    private var correctAnswers = 0
     private var alertPresenter: AlertPresenter?
     private var statisticService = StatisticService()
     private lazy var presenter: MovieQuizPresenter = {
@@ -57,7 +56,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     func alertActionCompleted() {
         if presenter.isLastQuestion() {
             presenter.resetQuestionIndex()
-            correctAnswers = 0
             questionFactory?.requestNextQuestion()
             enableButtons()
         }
@@ -82,23 +80,16 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     }
     
     func handleAnswer(givenAnswer: Bool) {
-        guard let currentQuestion = presenter.currentQuestion else {
-            return
-        }
-        if givenAnswer == currentQuestion.correctAnswer {
-            correctAnswers += 1
-        }
-        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        presenter.handleAnswer(givenAnswer: givenAnswer)
     }
     
-    private func showAnswerResult(isCorrect: Bool) {
+    func showAnswerResult(isCorrect: Bool) {
         imageView.layer.borderWidth = 8
         imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             guard let self = self else { return }
             self.imageView.layer.borderWidth = 0
             self.presenter.showNextQuestionOrResult(
-                correctAnswers: self.correctAnswers,
                 statisticService: self.statisticService,
                 alertPresenter: self.alertPresenter
             )
@@ -152,7 +143,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
                 [weak self] in
                 guard let self = self else { return }
                 if presenter.isLastQuestion() {
-                    self.correctAnswers = 0
+                    presenter.correctAnswers = 0
                     self.questionFactory?.requestNextQuestion()
                     self.enableButtons()
                 }

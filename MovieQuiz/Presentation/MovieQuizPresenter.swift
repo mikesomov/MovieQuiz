@@ -12,6 +12,7 @@ final class MovieQuizPresenter {
     
     private weak var viewController: MovieQuizViewController?
     var currentQuestion: QuizQuestion?
+    var correctAnswers = 0
     let questionsAmount: Int = 10
     private var currentQuestionIndex: Int = 0
     
@@ -22,25 +23,28 @@ final class MovieQuizPresenter {
     func yesButtonClicked() {
         viewController?.disableButtons()
         viewController?.animateButtonPress(viewController?.yesButton ?? UIButton())
-        viewController?.handleAnswer(givenAnswer: true)
+        handleAnswer(givenAnswer: true)
     }
     
     func noButtonClicked() {
         viewController?.disableButtons()
         viewController?.animateButtonPress(viewController?.noButton ?? UIButton())
-        viewController?.handleAnswer(givenAnswer: false)
+        handleAnswer(givenAnswer: false)
     }
     
     func isLastQuestion() -> Bool {
         currentQuestionIndex == questionsAmount - 1
     }
+    
     func resetQuestionIndex() {
         currentQuestionIndex = 0
+        correctAnswers = 0
     }
     
     func switchToNextQuestion() {
         currentQuestionIndex += 1
     }
+    
     func convert(model: QuizQuestion) -> QuizStepViewModel {
         return QuizStepViewModel(
             image: model.image,
@@ -60,7 +64,16 @@ final class MovieQuizPresenter {
         }
     }
     
-    func showNextQuestionOrResult(correctAnswers: Int, statisticService: StatisticService, alertPresenter: AlertPresenter?) {
+    func handleAnswer(givenAnswer: Bool) {
+        guard let currentQuestion = currentQuestion else { return }
+        let isCorrect = givenAnswer == currentQuestion.correctAnswer
+        if isCorrect {
+            correctAnswers += 1
+        }
+        viewController?.showAnswerResult(isCorrect: isCorrect)
+    }
+    
+    func showNextQuestionOrResult(statisticService: StatisticService, alertPresenter: AlertPresenter?) {
         if isLastQuestion() {
             viewController?.showFireworksAnimation()
             statisticService.store(correct: correctAnswers, total: questionsAmount)
