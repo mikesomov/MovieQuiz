@@ -29,8 +29,6 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
         questionFactory.delegate = presenter
         
         alertPresenter = AlertPresenter(delegate: self)
-        
-        questionFactory.loadData()
     }
     
     // MARK: - Internal Functions
