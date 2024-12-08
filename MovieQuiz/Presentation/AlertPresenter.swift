@@ -33,18 +33,4 @@ final class AlertPresenter {
         alert.addAction(action)
         delegate?.presentAlert(alert: alert)
     }
-    
-    func showFinalResultsAlert(correctAnswers: Int, totalQuestions: Int, gamesCount: Int, bestGame: GameResult, accuracy: Double) {
-        let alertModel = makeResultsMessage(
-            correctAnswers: correctAnswers,
-            totalQuestions: totalQuestions,
-            gamesCount: gamesCount,
-            bestGame: bestGame,
-            accuracy: accuracy,
-            completion: { [weak self] in
-                self?.delegate?.alertActionCompleted()
-            }
-        )
-        showAlert(with: alertModel)
-    }
 }
