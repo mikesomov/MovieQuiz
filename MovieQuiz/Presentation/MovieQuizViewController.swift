@@ -1,51 +1,33 @@
 import UIKit
 
 final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
-    
+
     // MARK: - Lifecycle
-    
+
     @IBOutlet weak private var imageView: UIImageView!
     @IBOutlet weak private var textLabel: UILabel!
     @IBOutlet weak private var counterLabel: UILabel!
     @IBOutlet weak var yesButton: UIButton!
     @IBOutlet weak var noButton: UIButton!
     @IBOutlet weak private var activityIndicator: UIActivityIndicatorView!
-    
+
     private var alertPresenter: AlertPresenter?
     private var statisticService = StatisticService()
     private var presenter: MovieQuizPresenter!
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         imageView.layer.cornerRadius = 20
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 0
-        
+
         showLoadingIndicator()
-        
-        let questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: nil)
-        presenter = MovieQuizPresenter(viewController: self, questionFactory: questionFactory)
-        questionFactory.delegate = presenter
-        
+        presenter = MovieQuizPresenter(viewController: self)
         alertPresenter = AlertPresenter(delegate: self)
     }
     
     // MARK: - Internal Functions
-    
-    func didReceiveNextQuestion(question: QuizQuestion?) {
-            presenter.didReceiveNextQuestion(question: question)
-        }
-    
-    func didLoadDataFromServer() {
-        activityIndicator.isHidden = true
-        presenter.requestNextQuestion()
-        
-    }
-    
-    func didFailToLoadData(with error: Error) {
-        showNetworkError(message: error.localizedDescription)
-    }
         
     func presentAlert(alert: UIAlertController) {
         present(alert, animated: true, completion: nil)
@@ -88,10 +70,6 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
             self.textLabel.text = step.question
             self.counterLabel.text = step.questionNumber
         }
-    }
-    
-    func handleAnswer(givenAnswer: Bool) {
-        presenter.handleAnswer(givenAnswer: givenAnswer)
     }
     
     func showAnswerResult(isCorrect: Bool) {
@@ -156,7 +134,7 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
         fireworksEmitter.emitterCells = [cell]
         view.layer.addSublayer(fireworksEmitter)
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             fireworksEmitter.removeFromSuperlayer()
         }
     }

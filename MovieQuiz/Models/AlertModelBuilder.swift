@@ -8,7 +8,14 @@
 import Foundation
 
 struct AlertModelBuilder {
-    static func buildFinalResultsAlert(correctAnswers: Int, totalQuestions: Int, gamesCount: Int, bestGame: GameResult, accuracy: Double, completion: @escaping () -> Void) -> AlertModel {
+    static func buildFinalResultsAlert(
+        correctAnswers: Int,
+        totalQuestions: Int,
+        gamesCount: Int,
+        bestGame: GameResult,
+        accuracy: Double,
+        completion: @escaping () -> Void
+    ) -> AlertModel {
         let alertMessage = """
             Ваш результат: \(correctAnswers)/\(totalQuestions)
             Количество сыгранных квизов: \(gamesCount)

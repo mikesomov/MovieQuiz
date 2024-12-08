@@ -13,23 +13,22 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     // MARK: - Lifecycle
 
     private weak var viewController: MovieQuizViewController?
+    private var questionFactory: QuestionFactoryProtocol?
     var currentQuestion: QuizQuestion?
     var correctAnswers = 0
     let questionsAmount: Int = 10
     private var currentQuestionIndex: Int = 0
-    var questionFactory: QuestionFactoryProtocol?
     
-    init(viewController: MovieQuizViewController, questionFactory: QuestionFactoryProtocol) {
+    init(viewController: MovieQuizViewController) {
         self.viewController = viewController
+        
+        let questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: nil)
         self.questionFactory = questionFactory
-        self.questionFactory?.loadData()
+        questionFactory.delegate = self
+        questionFactory.loadData()
     }
     
     // MARK: - Internal Functions
-
-    func requestNextQuestion() {
-        questionFactory?.requestNextQuestion()
-    }
     
     func didReceiveNextQuestion(question: QuizQuestion?) {
         guard let question = question else {
@@ -38,14 +37,11 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         }
         currentQuestion = question
         let viewModel = convert(model: question)
-        print("Converted question to view model.")
-
         DispatchQueue.main.async { [weak self] in
-            print("Calling viewController to show quiz.")
             self?.viewController?.show(quiz: viewModel)
         }
     }
-    
+
     func didLoadDataFromServer() {
         DispatchQueue.main.async { [weak self] in
             print("Data loaded from server.")
@@ -53,39 +49,43 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             self?.requestNextQuestion()
         }
     }
-    
+
     func didFailToLoadData(with error: Error) {
         DispatchQueue.main.async { [weak self] in
             self?.viewController?.hideLoadingIndicator()
             self?.viewController?.showNetworkError(message: error.localizedDescription)
         }
     }
-    
+
+    func requestNextQuestion() {
+        questionFactory?.requestNextQuestion()
+    }
+
     func yesButtonClicked() {
         viewController?.disableButtons()
         viewController?.animateButtonPress(viewController?.yesButton ?? UIButton())
         handleAnswer(givenAnswer: true)
     }
-    
+
     func noButtonClicked() {
         viewController?.disableButtons()
         viewController?.animateButtonPress(viewController?.noButton ?? UIButton())
         handleAnswer(givenAnswer: false)
     }
-    
+
     func isLastQuestion() -> Bool {
         currentQuestionIndex == questionsAmount - 1
     }
-    
+
     func resetQuestionIndex() {
         currentQuestionIndex = 0
         correctAnswers = 0
     }
-    
+
     func switchToNextQuestion() {
         currentQuestionIndex += 1
     }
-    
+
     func convert(model: QuizQuestion) -> QuizStepViewModel {
         return QuizStepViewModel(
             image: model.image,
@@ -93,7 +93,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)"
         )
     }
-    
+
     func handleAnswer(givenAnswer: Bool) {
         guard let currentQuestion = currentQuestion else { return }
         let isCorrect = givenAnswer == currentQuestion.correctAnswer
@@ -102,7 +102,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         }
         viewController?.showAnswerResult(isCorrect: isCorrect)
     }
-    
+
     func showNextQuestionOrResult(statisticService: StatisticService, alertPresenter: AlertPresenter?) {
         if isLastQuestion() {
             viewController?.showFireworksAnimation()
