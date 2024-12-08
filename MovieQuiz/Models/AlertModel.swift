@@ -14,3 +14,19 @@ struct AlertModel {
     let completion: (() -> Void)?
     
 }
+
+struct AlertModelBuilder {
+    static func buildAlert(
+        title: String,
+        message: String,
+        buttonText: String,
+        completion: @escaping () -> Void
+    ) -> AlertModel {
+        return AlertModel(
+            title: title,
+            message: message,
+            buttonText: buttonText,
+            completion: completion
+        )
+    }
+}

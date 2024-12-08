@@ -11,7 +11,7 @@ import UIKit
 final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate {
     
     // MARK: - Lifecycle
-
+    
     private weak var viewController: MovieQuizViewController?
     private var questionFactory: QuestionFactoryProtocol?
     var alertPresenter: AlertPresenter?
@@ -37,7 +37,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate 
     func presentAlert(alert: UIAlertController) {
         viewController?.present(alert, animated: true, completion: nil)
     }
-
+    
     func alertActionCompleted() {
         if isLastQuestion() {
             resetQuestionIndex()
@@ -65,50 +65,50 @@ final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate 
             self?.viewController?.show(quiz: viewModel)
         }
     }
-
+    
     func didLoadDataFromServer() {
         DispatchQueue.main.async { [weak self] in
             self?.viewController?.hideLoadingIndicator()
             self?.requestNextQuestion()
         }
     }
-
+    
     func didFailToLoadData(with error: Error) {
         DispatchQueue.main.async { [weak self] in
             self?.viewController?.hideLoadingIndicator()
             self?.viewController?.showNetworkError(message: error.localizedDescription)
         }
     }
-
+    
     func requestNextQuestion() {
         questionFactory?.requestNextQuestion()
     }
-
+    
     func yesButtonClicked() {
         viewController?.disableButtons()
         viewController?.animateButtonPress(viewController?.yesButton ?? UIButton())
-        handleAnswer(givenAnswer: true)
+        didAnswer(givenAnswer: true)
     }
-
+    
     func noButtonClicked() {
         viewController?.disableButtons()
         viewController?.animateButtonPress(viewController?.noButton ?? UIButton())
-        handleAnswer(givenAnswer: false)
+        didAnswer(givenAnswer: false)
     }
-
+    
     func isLastQuestion() -> Bool {
         currentQuestionIndex == questionsAmount - 1
     }
-
+    
     func resetQuestionIndex() {
         currentQuestionIndex = 0
         correctAnswers = 0
     }
-
+    
     func switchToNextQuestion() {
         currentQuestionIndex += 1
     }
-
+    
     func convert(model: QuizQuestion) -> QuizStepViewModel {
         return QuizStepViewModel(
             image: model.image,
@@ -116,8 +116,8 @@ final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate 
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)"
         )
     }
-
-    func handleAnswer(givenAnswer: Bool) {
+    
+    func didAnswer(givenAnswer: Bool) {
         guard let currentQuestion = currentQuestion else { return }
         let isCorrect = givenAnswer == currentQuestion.correctAnswer
         if isCorrect {
@@ -125,20 +125,20 @@ final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate 
         }
         proceedWithAnswer(isCorrect: isCorrect)
     }
-
+    
     func proceedToNextQuestionOrResults() {
         guard let alertPresenter = alertPresenter else {
             return
         }
-
+        
         if isLastQuestion() {
             viewController?.showFireworksAnimation()
             statisticService.store(correct: correctAnswers, total: questionsAmount)
-
+            
             let gamesCount = statisticService.gamesCount
             let bestGame = statisticService.bestGame
             let accuracy = statisticService.totalAccuracy
-
+            
             alertPresenter.showFinalResultsAlert(
                 correctAnswers: correctAnswers,
                 totalQuestions: questionsAmount,
@@ -152,4 +152,26 @@ final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate 
             viewController?.enableButtons()
         }
     }
+}
+
+func makeResultsMessage(
+    correctAnswers: Int,
+    totalQuestions: Int,
+    gamesCount: Int,
+    bestGame: GameResult,
+    accuracy: Double,
+    completion: @escaping () -> Void
+) -> AlertModel {
+    let alertMessage = """
+        Ваш результат: \(correctAnswers)/\(totalQuestions)
+        Количество сыгранных квизов: \(gamesCount)
+        Рекорд: \(bestGame.correct)/\(bestGame.total) (\(bestGame.date.dateTimeString))
+        Средняя точность: \(String(format: "%.2f", accuracy))%
+        """
+    return AlertModel(
+        title: "Этот раунд окончен!",
+        message: alertMessage,
+        buttonText: "Сыграть еще раз",
+        completion: completion
+    )
 }

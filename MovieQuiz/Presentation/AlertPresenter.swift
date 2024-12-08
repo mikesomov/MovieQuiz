@@ -35,7 +35,7 @@ final class AlertPresenter {
     }
     
     func showFinalResultsAlert(correctAnswers: Int, totalQuestions: Int, gamesCount: Int, bestGame: GameResult, accuracy: Double) {
-        let alertModel = AlertModelBuilder.buildFinalResultsAlert(
+        let alertModel = makeResultsMessage(
             correctAnswers: correctAnswers,
             totalQuestions: totalQuestions,
             gamesCount: gamesCount,
