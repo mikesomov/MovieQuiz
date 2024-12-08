@@ -16,8 +16,6 @@ final class MovieQuizViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         imageView.layer.cornerRadius = 20
-        imageView.layer.masksToBounds = true
-        imageView.layer.borderWidth = 0
         showLoadingIndicator()
         presenter = MovieQuizPresenter(viewController: self)
     }
@@ -25,6 +23,7 @@ final class MovieQuizViewController: UIViewController {
     // MARK: - Internal Functions
     
     func setImageBorder(isCorrect: Bool) {
+        imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 8
         imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
     }
