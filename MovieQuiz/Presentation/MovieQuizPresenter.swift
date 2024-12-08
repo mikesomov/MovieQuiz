@@ -8,19 +8,23 @@
 import Foundation
 import UIKit
 
-final class MovieQuizPresenter: QuestionFactoryDelegate {
+final class MovieQuizPresenter: QuestionFactoryDelegate, AlertPresenterDelegate {
     
     // MARK: - Lifecycle
 
     private weak var viewController: MovieQuizViewController?
     private var questionFactory: QuestionFactoryProtocol?
+    var alertPresenter: AlertPresenter?
     var currentQuestion: QuizQuestion?
     var correctAnswers = 0
     let questionsAmount: Int = 10
     private var currentQuestionIndex: Int = 0
+    private var statisticService: StatisticService
     
     init(viewController: MovieQuizViewController) {
         self.viewController = viewController
+        self.statisticService = StatisticService()
+        self.alertPresenter = AlertPresenter(delegate: self)
         
         let questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: nil)
         self.questionFactory = questionFactory
@@ -30,9 +34,29 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     
     // MARK: - Internal Functions
     
+    func presentAlert(alert: UIAlertController) {
+        viewController?.present(alert, animated: true, completion: nil)
+    }
+
+    func alertActionCompleted() {
+        if isLastQuestion() {
+            resetQuestionIndex()
+            requestNextQuestion()
+            viewController?.enableButtons()
+        }
+    }
+    
+    func proceedWithAnswer(isCorrect: Bool) {
+        viewController?.setImageBorder(isCorrect: isCorrect)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            guard let self = self else { return }
+            self.viewController?.resetImageBorder()
+            self.proceedToNextQuestionOrResults()
+        }
+    }
+    
     func didReceiveNextQuestion(question: QuizQuestion?) {
         guard let question = question else {
-            print("Received nil question.")
             return
         }
         currentQuestion = question
@@ -44,7 +68,6 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
 
     func didLoadDataFromServer() {
         DispatchQueue.main.async { [weak self] in
-            print("Data loaded from server.")
             self?.viewController?.hideLoadingIndicator()
             self?.requestNextQuestion()
         }
@@ -100,19 +123,23 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         if isCorrect {
             correctAnswers += 1
         }
-        viewController?.showAnswerResult(isCorrect: isCorrect)
+        proceedWithAnswer(isCorrect: isCorrect)
     }
 
-    func showNextQuestionOrResult(statisticService: StatisticService, alertPresenter: AlertPresenter?) {
+    func proceedToNextQuestionOrResults() {
+        guard let alertPresenter = alertPresenter else {
+            return
+        }
+
         if isLastQuestion() {
             viewController?.showFireworksAnimation()
             statisticService.store(correct: correctAnswers, total: questionsAmount)
-            
+
             let gamesCount = statisticService.gamesCount
             let bestGame = statisticService.bestGame
             let accuracy = statisticService.totalAccuracy
-            
-            alertPresenter?.showFinalResultsAlert(
+
+            alertPresenter.showFinalResultsAlert(
                 correctAnswers: correctAnswers,
                 totalQuestions: questionsAmount,
                 gamesCount: gamesCount,

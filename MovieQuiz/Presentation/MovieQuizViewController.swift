@@ -1,44 +1,38 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
-
+final class MovieQuizViewController: UIViewController {
+    
     // MARK: - Lifecycle
-
+    
     @IBOutlet weak private var imageView: UIImageView!
     @IBOutlet weak private var textLabel: UILabel!
     @IBOutlet weak private var counterLabel: UILabel!
     @IBOutlet weak var yesButton: UIButton!
     @IBOutlet weak var noButton: UIButton!
     @IBOutlet weak private var activityIndicator: UIActivityIndicatorView!
-
-    private var alertPresenter: AlertPresenter?
-    private var statisticService = StatisticService()
+    
     private var presenter: MovieQuizPresenter!
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         imageView.layer.cornerRadius = 20
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 0
-
+        
         showLoadingIndicator()
         presenter = MovieQuizPresenter(viewController: self)
-        alertPresenter = AlertPresenter(delegate: self)
     }
     
     // MARK: - Internal Functions
-        
-    func presentAlert(alert: UIAlertController) {
-        present(alert, animated: true, completion: nil)
+    
+    func setImageBorder(isCorrect: Bool) {
+        imageView.layer.borderWidth = 8
+        imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
     }
     
-    func alertActionCompleted() {
-        if presenter.isLastQuestion() {
-            presenter.resetQuestionIndex()
-            presenter.requestNextQuestion()
-            enableButtons()
-        }
+    func resetImageBorder() {
+        imageView.layer.borderWidth = 0
     }
     
     func disableButtons() {
@@ -64,24 +58,10 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     }
     
     func show(quiz step: QuizStepViewModel) {
-        print("Updating UI with question: \(step.question)")
         DispatchQueue.main.async {
             self.imageView.image = UIImage(data: step.image) ?? UIImage(named: "placeholder")
             self.textLabel.text = step.question
             self.counterLabel.text = step.questionNumber
-        }
-    }
-    
-    func showAnswerResult(isCorrect: Bool) {
-        imageView.layer.borderWidth = 8
-        imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            guard let self = self else { return }
-            self.imageView.layer.borderWidth = 0
-            self.presenter.showNextQuestionOrResult(
-                statisticService: self.statisticService,
-                alertPresenter: self.alertPresenter
-            )
         }
     }
     
@@ -95,16 +75,16 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
         let alertModel = AlertModel(
             title: "Ошибка",
             message: message,
-            buttonText: "Попробовать еще раз") {
-                [weak self] in
-                guard let self = self else { return }
-                if presenter.isLastQuestion() {
-                    presenter.correctAnswers = 0
-                    presenter.requestNextQuestion()
-                    self.enableButtons()
-                }
+            buttonText: "Попробовать еще раз"
+        ) { [weak self] in
+            guard let self = self else { return }
+            if self.presenter.isLastQuestion() {
+                self.presenter.correctAnswers = 0
+                self.presenter.requestNextQuestion()
+                self.enableButtons()
             }
-        alertPresenter?.showAlert(with: alertModel)
+        }
+        presenter.alertPresenter?.showAlert(with: alertModel)
     }
     
     func showFireworksAnimation() {

@@ -19,17 +19,14 @@ final class QuestionFactory: QuestionFactoryProtocol {
     }
 
     func loadData() {
-        print("Loading data from server...")
         moviesLoader.loadMovies { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 switch result {
                 case .success(let mostPopularMovies):
-                    print("Movies loaded successfully.")
                     self.movies = mostPopularMovies.items
                     self.delegate?.didLoadDataFromServer()
                 case .failure(let error):
-                    print("Failed to load movies. Error: \(error)")
                     self.delegate?.didFailToLoadData(with: error)
                 }
             }
@@ -39,25 +36,20 @@ final class QuestionFactory: QuestionFactoryProtocol {
     func requestNextQuestion() {
         DispatchQueue.global().async { [weak self] in
             guard let self = self else { return }
-            print("Fetching next question...")
             
             let index = (0..<self.movies.count).randomElement() ?? 0
             guard let movie = self.movies[safe: index] else {
-                print("Movie data is invalid.")
                 return
             }
 
             var imageData = Data()
             do {
-                print("Attempting to load image from URL: \(movie.resizedImageURL)")
                 imageData = try Data(contentsOf: movie.resizedImageURL)
 
                 if imageData.isEmpty {
-                    print("Image data is empty.")
                     return
                 }
             } catch {
-                print("Failed to load image. Error: \(error)")
                 return
             }
 
@@ -66,7 +58,6 @@ final class QuestionFactory: QuestionFactoryProtocol {
             let correctAnswer = rating > 7
 
             let question = QuizQuestion(image: imageData, text: text, correctAnswer: correctAnswer)
-            print("Next question created: \(question.text)")
 
             DispatchQueue.main.async { [weak self] in
                 self?.delegate?.didReceiveNextQuestion(question: question)
