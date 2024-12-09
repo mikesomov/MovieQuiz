@@ -9,28 +9,21 @@ import Foundation
 import UIKit
 
 final class AlertPresenter {
-    
-    private weak var delegate: AlertPresenterDelegate?
-    
-    init(delegate: AlertPresenterDelegate) {
-        self.delegate = delegate
-    }
-    
-    func showAlert(with model: AlertModel) {
-        let alert = UIAlertController(
-            title: model.title,
-            message: model.message,
-            preferredStyle: .alert
-        )
-        alert.view.accessibilityIdentifier = "GameResultAlert"
-        let action = UIAlertAction(
-            title: model.buttonText,
-            style: .default
-        ) { [weak self] _ in
-            model.completion?()
-            self?.delegate?.alertActionCompleted()
+    func showAlert(on viewController: UIViewController, with model: AlertModel) {
+        DispatchQueue.main.async {
+            let alert = UIAlertController(title: model.title,
+                                          message: model.message,
+                                          preferredStyle: .alert)
+            alert.view.accessibilityIdentifier = "Alert"
+            
+            let action = UIAlertAction(title: model.buttonText, style: .default) { _ in
+                model.completion?()
+            }
+            action.accessibilityIdentifier = "ReplayButton"
+            
+            alert.addAction(action)
+            viewController.present(alert, animated: true, completion: nil)
         }
-        alert.addAction(action)
-        delegate?.presentAlert(alert: alert)
     }
 }
+

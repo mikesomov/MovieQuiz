@@ -8,7 +8,7 @@
 import Foundation
 
 protocol StatisticServiceProtocol {
-    var gamesCount: Int { get }
+    var gamesCount: Int { get set }
     var bestGame: GameResult { get }
     var totalAccuracy: Double { get }
     

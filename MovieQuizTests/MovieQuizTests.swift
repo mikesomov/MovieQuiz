@@ -15,10 +15,10 @@ struct ArithmeticOperations {
         }
     }
     
-    func substraction(num1: Int, num2: Int, handler: @escaping (Int) -> Void) {
+    func subtraction(num1: Int, num2: Int, handler: @escaping (Int) -> Void) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-        handler(num1 - num2)
-       }
+            handler(num1 - num2)
+        }
     }
     
     func multiplication(num1: Int, num2: Int, handler: @escaping (Int) -> Void) {
@@ -28,22 +28,23 @@ struct ArithmeticOperations {
     }
 }
 
-class MovieQuizTests: XCTestCase {
+class MovieQuizUnitTest: XCTestCase {
     func testAddition() throws {
         
-        //Given
         let arithmeticOperations = ArithmeticOperations()
         let num1 = 1
-        let num2 = 2;
+        let num2 = 2
         
-        //When
-        let expectation = expectation(description: "Additional function expectation")
-        arithmeticOperations.addition(num1: num1, num2: num2) { result in
-            
-            //Then
+        let expectation = expectation(description: "Addition function expectation")
+       
+       arithmeticOperations.addition(num1: num1, num2: num2) { result in
+
             XCTAssertEqual(result, 3)
             expectation.fulfill()
         }
+        
         waitForExpectations(timeout: 2)
     }
 }
+
+
