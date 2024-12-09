@@ -81,7 +81,7 @@ class MovieQuizUITests: XCTestCase {
             sleep(3)
         }
         
-        sleep (3)
+        sleep (5)
         let alert = app.alerts["Alert"]
         alert.buttons.firstMatch.tap()
         
