@@ -1,33 +1,42 @@
 //
-//  NetworkClient.swift
+//  NetworkRoutingProtocol.swift
 //  MovieQuiz
 //
-//  Created by Mike Somov on 27.11.2024.
+//  Created by Mike Somov on 04.12.2024.
 //
 
 import Foundation
 
-struct NetworkClient {
-    
+
+protocol NetworkRouting {
+    func fetch(url: URL, handler: @escaping (Result<Data, Error>) -> Void)
+}
+
+struct NetworkClient: NetworkRouting {
+
     private enum NetworkError: Error {
         case codeError
     }
     
     func fetch(url: URL, handler: @escaping (Result<Data, Error>) -> Void) {
         let request = URLRequest(url: url)
+        
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 handler(.failure(error))
                 return
             }
+            
             if let response = response as? HTTPURLResponse,
-               response.statusCode < 200 || response.statusCode >= 300 {
+                response.statusCode < 200 || response.statusCode >= 300 {
                 handler(.failure(NetworkError.codeError))
                 return
             }
+            
             guard let data = data else { return }
             handler(.success(data))
         }
+        
         task.resume()
     }
 }

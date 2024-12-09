@@ -12,13 +12,7 @@ struct GameResult {
     let total: Int
     let date: Date
     
-    func isBetterThan(_ another: GameResult) -> Bool {
+    func isBestScore(_ another: GameResult) -> Bool {
         correct > another.correct
-    }
-}
-
-extension GameResult {
-    var formattedDate: String {
-        return date.dateTimeString
     }
 }
